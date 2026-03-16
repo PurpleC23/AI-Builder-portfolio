@@ -1,0 +1,474 @@
+{
+  "name": "AI Productivity Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"summary\": \"short summary\",\n  \"tasks\": [\n    {\n      \"task\": \"task description\",\n      \"type\": \"task or meeting\",\n      \"datetime\": \"YYYY-MM-DD\" or null,\n      \"category\": \"work | admin | personal | finance | learning\",\n      \"priority\": \"high | medium | low\",\n      \"source\": \"email sender\"\n    }\n  ]\n}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You analyze emails and extract actionable items.\n\nReturn VALID JSON only. Do not include explanations or text outside JSON.\n\nOutput format:\n\n{\n  \"summary\": \"short summary of the email\",\n  \"tasks\": [\n    {\n      \"task\": \"task description\",\n      \"type\": \"task or meeting\",\n      \"datetime\": \"YYYY-MM-DD\" or null\n    }\n  ]\n}\nCategory rules:\nWork → reports, meetings, projects\nAdmin → scheduling, paperwork\nPersonal → life tasks\nFinance → payments, invoices\nLearning → courses, study\nPriority rules:\n- urgent, asap, immediately → high\n- deadlines or scheduled work → medium\n- general tasks → low\nRules:\n- Identify all actionable items from the email.\n- If the item refers to a meeting, call, discussion, or scheduling → type = \"meeting\".\n- Otherwise type = \"task\".\n- Extract a deadline or date if present.\n- Convert dates to ISO 8601 format: YYYY-MM-DD.\n- If no date is mentioned → datetime = null.\n- Every string value must be in double quotes.\n- Output must be valid JSON.\n- Return STRICT JSON only.\n- Do NOT include markdown, explanations, or extra text.\n\nEmail:\n{{$json.Email}}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        400,
+        0
+      ],
+      "id": "294e27d9-7114-4c87-b5a6-c73492fa3935",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        336,
+        208
+      ],
+      "id": "fae6f407-38b4-4fe5-ac94-efd5998476d1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "cz74arItbMwm4O6f",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "43439e60-514f-47dd-a57c-4bf238a282e4",
+              "name": "Email",
+              "value": "Hi John,  Can you prepare the Q3 marketing report by Friday? Also schedule a meeting with the design team next week.  Thanks.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6638705f-0e92-4506-8734-3ad6491e72dd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.text;\n\ntry {\n  const parsed = JSON.parse(raw);\n\n  return [{\n    json: {\n      success: true,\n      ...parsed\n    }\n  }];\n\n} catch (error) {\n\n  return [{\n    json: {\n      success: false,\n      error: \"Invalid JSON from AI\",\n      raw: raw\n    }\n  }];\n\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "0a4c5225-67da-4212-81b8-663426ccd4c0",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "=purpleessence23@gmail.com",
+          "mode": "id"
+        },
+        "start": "={{ $json.datetime && $json.datetime !== \"null\" ? $json.datetime : $now }}",
+        "additionalFields": {
+          "summary": "={{$json.task}}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        -208
+      ],
+      "id": "e270339a-65a3-47db-8b2d-61c3a4b386b8",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "oBphF3bjhgBzm0Hb",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a4aaffc2-8deb-4ef5-9ae4-6786fbe2a484",
+              "leftValue": "={{$json.results.length}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1360,
+        32
+      ],
+      "id": "992d4c6e-f569-4e6c-8f43-c8433be52468",
+      "name": "if duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "48a781c7-5857-48fb-ae61-dfcec7e65316",
+              "leftValue": "={{$json.success}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        128
+      ],
+      "id": "5e4f7e4c-de1f-4fa3-b7a9-82b2d3409a07",
+      "name": "json error failsafe"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "tasks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "92b562ad-bb0f-43f5-ae53-9bdbe799f489",
+      "name": "Splitting tasks"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n \"Authorization\": \"Bearer YOUR_NOTION_API_KEY\",\n \"Notion-Version\": \"2022-06-28\",\n \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={   \"parent\": {     \"database_id\": \"31f6861b671f80a1b074dafbacc04b3\"   },   \"properties\": {     \"Error\": {       \"rich_text\": [         {           \"text\": {             \"content\": \"{{$json.error}}\"           }         }       ]     },     \"Raw Output\": {       \"rich_text\": [         {           \"text\": {             \"content\": \"{{$json.raw}}\"           }         }       ]     },     \"Timestamp\": {       \"date\": {         \"start\": \"{{$now}}\"       }     }   } }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1136,
+        224
+      ],
+      "id": "020a9ec6-7c0f-4101-8fd4-8d2f4c83c562",
+      "name": "adding error log"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/31f6861b671f80bfb8b2c6cc2cfb611d/query",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n \"Authorization\": \"Bearer YOUR_NOTION_API_KEY\",\n \"Notion-Version\": \"2022-06-28\",\n \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"filter\": {\n   \"property\": \"Task ID\",\n   \"rich_text\": {\n     \"equals\": \"{{$json.task}}-{{$json.datetime || 'nodate'}}\"\n   }\n }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1168,
+        48
+      ],
+      "id": "3fbb06dd-5de0-4913-a9f1-20fea27de480",
+      "name": "searching database for duplicates",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2901d5f7-a7ce-438d-9478-cf5271d72d00",
+              "leftValue": "={{$json.type}}",
+              "rightValue": "=meeting",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1632,
+        -144
+      ],
+      "id": "be3d2c25-dc85-4a83-9eec-2d0c7eb21438",
+      "name": "categorizing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"Authorization\": \"Bearer YOUR_NOTION_API_KEY\",\n  \"Notion-Version\": \"2022-06-28\",\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json ",
+        "body": "={\n  \"parent\": {\n    \"database_id\": \"31f6861b671f80bfb8b2c6cc2cfb611d\"\n  },\n  \"properties\": {\n    \"Tasks\": {\n      \"title\": [\n        {\n          \"text\": {\n            \"content\": \"{{$json.task}}\"\n          }\n        }\n      ]\n    },\n    \"Type\": {\n      \"select\": {\n        \"name\": \"{{$json.type}}\"\n      }\n    },\n    \"Priority\": {\n      \"select\": {\n        \"name\": \"{{$json.priority}}\"\n      }\n    },\n    \"Category\": {\n      \"select\": {\n        \"name\": \"{{$json.category}}\"\n      }\n    },\n    \"Source\": {\n      \"rich_text\": [\n        {\n          \"text\": {\n            \"content\": \"{{$json.source}}\"\n          }\n        }\n      ]\n    },\n      \"Task ID\": {\n       \"rich_text\": [\n       {\n         \"text\": {\n           \"content\": \"{{$json.task.toLowerCase().split(' ').join('-') + '-' + ($json.datetime ? $json.datetime : 'nodate')}}\"\n         }\n       }\n     ]\n   },\n    \"Due Date\": {\n      \"date\": {\n        \"start\": \"{{$json.datetime !== null && $json.datetime !== 'null' ? $json.datetime : new Date().toISOString().split('T')[0]}}\"\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1792,
+        0
+      ],
+      "id": "d273056c-d3db-4499-bd5e-8c80c383d15f",
+      "name": "Notion Https"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1488,
+        -144
+      ],
+      "id": "a558c226-f74d-428a-8261-6d7dc07c5749",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "productivity-assistant",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "387ab81a-4778-438a-8ce3-df4ff71ec9c7",
+      "name": "Webhook",
+      "webhookId": "8c9849bf-b56b-4f85-a07b-a800b6164210"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "json error failsafe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if duplicate": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "json error failsafe": {
+      "main": [
+        [
+          {
+            "node": "Splitting tasks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "adding error log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Splitting tasks": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "searching database for duplicates": {
+      "main": [
+        [
+          {
+            "node": "if duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "categorizing": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion Https",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "categorizing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5d318413-b3aa-43a3-b712-b38abab9db16",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1199e433c34e473abf66c72a6bb3b0da88b1d6bec6d96f1ac3e267e2dd6a8153"
+  },
+  "id": "M96vRLk1wNmatZqi",
+  "tags": []
+}
