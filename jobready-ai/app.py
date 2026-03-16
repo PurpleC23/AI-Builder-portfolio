@@ -117,7 +117,7 @@ with tab1:
     st.caption("Upload once — all other features use this automatically.")
     
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=["pdf", "docx"])
-    st.session_state.user_name = st.text_input("Your Full Name:", placeholder="e.g. Sam Wright")
+    st.session_state.user_name = st.text_input("Your Full Name:", placeholder="e.g. Sam Winchester")
     if uploaded_file:
         with st.spinner("Reading your resume..."):
             raw_text = extract_resume_text(uploaded_file)
