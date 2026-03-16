@@ -126,11 +126,11 @@ with tab1:
         st.success("Resume uploaded successfully!")
         
         if st.button("Click to Extract", type="primary"):
-            with st.spinner("Mistral is analyzing your resume..."):
+            with st.spinner("Your Resume is being analysed..."):
                 parsed = parse_resume_with_ai(raw_text)
                 st.session_state.parsed_resume = parsed["parsed"]
             
-            st.subheader("What Mistral sees:")
+            st.subheader("Key Points:")
             st.markdown(st.session_state.parsed_resume)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -179,6 +179,7 @@ with tab2:
                 if line.strip() and line.strip()[0].isdigit():
                     title = line.split("-")[0].strip()
                     title = line.lstrip("0123456789. ").replace("**", "").replace("*", "").strip()
+                    title = title.split(" - ")[0].strip()
                     if title:
                         suggested_titles.append(title)
             
@@ -244,7 +245,7 @@ with tab3:
                     job_text = scrape_job(job_url)
                     st.session_state.job_text = job_text
                 
-                with st.spinner("Mistral is scoring your match..."):
+                with st.spinner("Rating..."):
                     analysis = analyze_match(
                         st.session_state.resume_text,
                         st.session_state.job_text
@@ -354,7 +355,7 @@ with tab5:
         st.warning("Please analyze a job in the Job Analyzer tab first.")
     else:
         if st.button("🗣️ Generate Interview Questions", type="primary"):
-            with st.spinner("Mistral is predicting your interview questions..."):
+            with st.spinner("Predicting your interview questions..."):
                 questions = generate_interview_questions(
                     st.session_state.resume_text,
                     st.session_state.job_text

@@ -7,6 +7,7 @@ def search_jobs(skills_text: str, country: str = "Global") -> str:
     
     prompt = f"""
     Based on these skills and experience, suggest 8 specific job titles for this candidate.
+    IMPORTANT: Do not use any pronouns (he/she/him/his/her). Refer to the candidate as "the candidate" or "this profile".
     
     Format your response as a numbered list like this:
     1. Job Title - Why it fits - Global Remote Salary (USD/month) - {country} Salary - Where to search
