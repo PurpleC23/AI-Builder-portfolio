@@ -6,7 +6,7 @@ def generate_interview_questions(resume_text: str, job_text: str) -> str:
     prompt = f"""
     You are an expert interview coach. Based on this job description and candidate resume,
     predict the 20 most likely interview questions they will be asked.
-    
+    IMPORTANT: Do not use any pronouns (he/she/him/his/her). Refer to the candidate as "the candidate" or "this profile".
     For each question provide:
     - The question
     - Why interviewers ask it for this role

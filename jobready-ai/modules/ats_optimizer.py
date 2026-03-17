@@ -7,7 +7,7 @@ def optimize_for_role(resume_text: str, job_title: str) -> str:
     You are an expert ATS (Applicant Tracking System) optimization specialist.
     
     Analyze this resume against the job title "{job_title}" and provide:
-    
+    IMPORTANT: Do not use any pronouns (he/she/him/his/her). Refer to the candidate as "the candidate" or "this profile".
     ATS SCORE: (X/100)
     
     KEYWORDS YOU HAVE:
