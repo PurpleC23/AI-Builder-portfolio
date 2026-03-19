@@ -1,5 +1,7 @@
 #  RAG Support Agent
 
+**[Watch Demo](https://youtu.be/ebCKefoQEDo)**
+
 An AI-powered document Q&A agent built with RAG (Retrieval Augmented Generation). Upload any PDF — ask questions — get accurate answers grounded in the document. Zero hallucinations, zero ongoing API costs.
 
 ---

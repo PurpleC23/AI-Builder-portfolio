@@ -1,5 +1,9 @@
 #  JobReady — AI Job Hunting Assistant
- **[Live Demo](https://ai-builder-portfolio-ftccv9w6qpgfklfu8jnarc.streamlit.app/)**
+
+**[Live Demo](https://ai-builder-portfolio-ftccv9w6qpgfklfu8jnarc.streamlit.app/)**
+
+**[Watch Video Demo](https://youtu.be/mgS1XrFrTEc)**
+
 An AI-powered job hunting assistant built with Python, Streamlit, and Groq. Goes from "I need a job" to "I'm ready to apply" in minutes — free, fast, and powered by Groq's lightning-fast LLM API.
 
 ---

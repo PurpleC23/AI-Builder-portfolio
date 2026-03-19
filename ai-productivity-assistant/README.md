@@ -1,5 +1,7 @@
 #  AI Productivity Assistant
 
+**[Watch Demo](https://youtu.be/jer4Ofldt1g)**
+
 An AI-powered automation system that converts natural language text into structured tasks and calendar events. Zero manual effort — just describe what needs to be done.
 
 ---
